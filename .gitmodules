@@ -1,4 +1,0 @@
-[submodule "ConfigFiles"]
-	path = ConfigFiles
-	url = https://github.com/AnandSelvan/ConfigFiles.git
-	branch = master
