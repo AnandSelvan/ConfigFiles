@@ -1,6 +1,6 @@
 Building configuration...
 
-Current configuration : 3318 bytes
+Current configuration : 3301 bytes
 !
 upgrade fpd auto
 version 12.4
@@ -21,8 +21,6 @@ no ip icmp rate-limit unreachable
 ip cef
 !
 !
-!
-ip dhcp pool 1
 !
 !
 no ip domain lookup

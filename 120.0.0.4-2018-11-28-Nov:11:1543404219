@@ -1,6 +1,6 @@
 Building configuration...
 
-Current configuration : 3318 bytes
+Current configuration : 3344 bytes
 !
 upgrade fpd auto
 version 12.4
@@ -8,7 +8,7 @@ service timestamps debug datetime msec
 service timestamps log datetime msec
 no service password-encryption
 !
-hostname PE1
+hostname PE2
 !
 boot-start-marker
 boot-end-marker
@@ -22,12 +22,9 @@ ip cef
 !
 !
 !
-ip dhcp pool 1
-!
 !
 no ip domain lookup
-ip domain name gns33333.com
-ip host PE1 120.0.0.3
+ip domain name cango.com
 ip vrf vrf1
  rd 65000:1
  route-target export 65000:1
@@ -37,11 +34,6 @@ ip vrf vrf2
  rd 65000:2
  route-target export 65000:2
  route-target import 65000:2
-!
-ip vrf vrf3
- rd 65000:3
- route-target export 65000:3
- route-target import 65000:3
 !
 no ipv6 cef
 !
@@ -61,8 +53,8 @@ multilink bundle-name authenticated
 !
 !
 !
-username admin privilege 15 secret 5 $1$VIkL$rRaZLCpFYdkAeAoNUp/Ug/
-username cango privilege 15 secret 5 $1$cuEb$zxSQI5yDLMBBVkTkKI.ju1
+username cango privilege 15 secret 5 $1$SCnz$Q0/goYVj6to6BTteoADag/
+username admin privilege 15 secret 5 $1$awp6$TFXvhx9/6n3.jod/DK376.
 archive
  log config
   hidekeys
@@ -72,80 +64,90 @@ archive
 !
 !
 ip tcp synwait-time 5
+ip tftp source-interface FastEthernet0/0
 !
 !
 !
 !
 interface Loopback0
- ip address 120.0.0.3 255.255.255.255
+ ip address 120.0.0.4 255.255.255.255
 !
 interface FastEthernet0/0
  ip vrf forwarding vrf1
- ip address 120.0.1.1 255.255.255.252
+ ip address 120.0.2.1 255.255.255.252
  ip ospf 2 area 0
  duplex auto
  speed auto
 !
 interface FastEthernet0/1
  ip vrf forwarding vrf2
- ip address 120.0.1.5 255.255.255.252
+ ip address 120.0.2.5 255.255.255.252
  ip ospf 3 area 0
  duplex auto
  speed auto
 !
 interface FastEthernet1/0
- ip address 120.0.9.6 255.255.255.252
+ ip address 120.0.9.10 255.255.255.252
  duplex half
  mpls ip
 !
 interface FastEthernet2/0
- ip vrf forwarding vrf3
- ip address 130.0.1.1 255.255.255.252
- ip ospf 4 area 0
- duplex auto
+ ip address 110.1.1.1 255.255.255.252
+ duplex half
  speed auto
 !
 interface FastEthernet2/1
+ ip address 140.1.1.1 255.255.255.0
+ duplex auto
+ speed auto
+!
+interface FastEthernet3/0
  no ip address
+ shutdown
+ duplex auto
+ speed auto
+!
+interface FastEthernet3/1
+ no ip address
+ shutdown
  duplex auto
  speed auto
 !
 router ospf 2 vrf vrf1
- router-id 120.0.1.1
+ router-id 120.0.2.1
  log-adjacency-changes
  redistribute bgp 65000 subnets
 !
 router ospf 3 vrf vrf2
- router-id 120.0.1.5
+ router-id 120.0.2.5
  log-adjacency-changes
  redistribute bgp 65000 subnets
 !
-router ospf 4 vrf vrf3
- router-id 130.0.1.1
- log-adjacency-changes
-!
 router ospf 1
  log-adjacency-changes
- network 120.0.1.0 0.0.0.3 area 0
- network 120.0.1.4 0.0.0.3 area 0
- network 120.0.9.4 0.0.0.3 area 0
- network 130.0.1.0 0.0.0.3 area 0
+ network 120.0.2.0 0.0.0.3 area 0
+ network 120.0.2.4 0.0.0.3 area 0
+ network 120.0.9.8 0.0.0.3 area 0
  network 0.0.0.0 255.255.255.255 area 0
+!
+router ospf 48
+ log-adjacency-changes
+ network 0.0.0.0 255.255.255.255 area 1
 !
 router bgp 65000
  no synchronization
  bgp log-neighbor-changes
- neighbor 120.0.0.4 remote-as 65000
- neighbor 120.0.0.4 update-source Loopback0
+ neighbor 10.0.0.4 remote-as 65000
+ neighbor 10.0.0.4 update-source Loopback0
+ neighbor 120.0.0.3 remote-as 65000
+ neighbor 120.0.0.3 update-source Loopback0
  no auto-summary
  !
  address-family vpnv4
-  neighbor 120.0.0.4 activate
-  neighbor 120.0.0.4 send-community extended
- exit-address-family
- !
- address-family ipv4 vrf vrf3
-  no synchronization
+  neighbor 10.0.0.4 activate
+  neighbor 10.0.0.4 send-community extended
+  neighbor 120.0.0.3 activate
+  neighbor 120.0.0.3 send-community extended
  exit-address-family
  !
  address-family ipv4 vrf vrf2
@@ -159,20 +161,18 @@ router bgp 65000
  exit-address-family
 !
 ip forward-protocol nd
-ip route 0.0.0.0 0.0.0.0 192.168.1.51
 no ip http server
 no ip http secure-server
 !
 !
 !
-ip sla 2222
- udp-jitter 120.0.0.4 5001
- owner PE1_gnet
- tag PE1 Video Class gnet
-ip sla 2408
- udp-jitter 120.0.0.2 5000
- frequency 30
-ip sla schedule 2408 life forever start-time now
+ip sla 1308
+ icmp-echo 120.0.0.2
+ tos 9
+ owner P2
+ tag P2 Video_class_test
+ frequency 120
+ip sla schedule 1308 life forever start-time pending
 logging alarm informational
 snmp-server group authPriv v3 priv 
 snmp-server community public RO
